@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Taiwan ISO Time Copier</title>
+    <style>
+        :root {
+            --bg-color: #000000; 
+            --text-color: #ffffff;
+            --accent-color: #3e82f7; 
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        #iso-time {
+            font-family: "Roboto Mono", monospace;
+            font-size: 1.8rem; /* 斷行後可以稍微調大字體更易讀 */
+            font-weight: 500;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #333;
+            line-height: 1.5; /* 增加行距，讓兩行文字有呼吸空間 */
+            display: block;
+        }
+
+        /* 讓時區部分自動斷行並置中 */
+        .timezone {
+            display: block;
+            font-size: 1.5rem;
+            color: var(--accent-color); /* 可選：給時區一點顏色區分，或維持白色 */
+        }
+
+        .copy-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 25px 0;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(62, 130, 247, 0.4);
+            transition: transform 0.1s, background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+            background-color: #2a6edb;
+        }
+
+        #toast {
+            visibility: hidden;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #000;
+            padding: 16px 32px;
+            border-radius: 50px;
+            position: fixed;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: popUp 2s;
+        }
+
+        @keyframes popUp {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            20% { opacity: 1; transform: translate(-50%, 0); }
+            80% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="label">TAIWAN TIME (UTC+08:00)</div>
+        <div id="iso-time">
+            <span id="date-time">載入中...</span><br>
+            <span class="timezone">+08:00</span>
+        </div>
+        <button class="copy-btn" onclick="copyTime()">一鍵複製時間</button>
+    </div>
+
+    <div id="toast">已複製臺灣標準時間</div>
+
+    <script>
+        function updateDisplay() {
+            const now = new Date();
+            const pad = (num) => String(num).padStart(2, '0');
+            
+            const yyyy = now.getFullYear();
+            const mm = pad(now.getMonth() + 1);
+            const dd = pad(now.getDate());
+            const hh = pad(now.getHours());
+            const min = pad(now.getMinutes());
+            const ss = pad(now.getSeconds());
+
+            // 只更新時間部分，時區固定在 HTML 中
+            document.getElementById('date-time').innerText = `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
+        }
+
+        function copyTime() {
+            // 複製時會自動將兩行文字合併為一個字串，並移除多餘空格
+            const dateTime = document.getElementById('date-time').innerText;
+            const fullText = dateTime + "+08:00";
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(fullText).then(() => {
+                    showToast();
+                });
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = fullText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast();
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.className = "show";
+            setTimeout(() => { toast.className = ""; }, 2000);
+        }
+
+        setInterval(updateDisplay, 1000);
+        updateDisplay();
+    </script>
+
+</body>
+</html>
